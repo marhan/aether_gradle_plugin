@@ -1,0 +1,31 @@
+import de.marhan.plugins.aether.DownloadDependencyTask;
+
+apply plugin: 'java'
+apply plugin: 'maven'
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.21'
+
+    /*compile 'com.jcabi:jcabi-aether:0.10.1'
+    compile 'org.apache.maven:maven-core:3.0.3'
+    compile 'org.sonatype.aether:aether-api:1.13.1'*/
+
+
+    testCompile 'junit:junit:4.12'
+}
+
+
+task loadDependency(type: DownloadDependencyTask) {
+    repositoryId = "maven-central"
+    repositoryType = "default"
+    repositoryUrl = "http://repo1.maven.org/maven2/"
+    artifactCoords = "junit:junit-dep:4.10";
+    destinationFolder = "build/"
+
+}
+
