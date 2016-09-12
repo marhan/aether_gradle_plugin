@@ -1,31 +1,56 @@
-import de.marhan.plugins.aether.DownloadDependencyTask;
+apply plugin: 'maven-publish'
+apply plugin: 'groovy'
+apply plugin: 'idea'
 
-apply plugin: 'java'
-apply plugin: 'maven'
+group 'de.marhan.gradle.plugin'
+version '0.0.1'
+description = 'gradle aether plugin to load dependency from maven repository alternatively'
 
 repositories {
-    jcenter()
+    mavenLocal()
     mavenCentral()
 }
 
+
+sourceCompatibility = 1.8
+
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile gradleApi()
+    compile localGroovy()
 
-    /*compile 'com.jcabi:jcabi-aether:0.10.1'
+    compile 'com.jcabi:jcabi-aether:0.10.1'
     compile 'org.apache.maven:maven-core:3.0.3'
-    compile 'org.sonatype.aether:aether-api:1.13.1'*/
+    compile 'org.sonatype.aether:aether-api:1.13.1'
 
-
-    testCompile 'junit:junit:4.12'
+    testCompile('org.spockframework:spock-core:1.1-groovy-2.4-rc-2') {
+        exclude group: 'org.codehaus.groovy'
+    }
 }
 
-
-task loadDependency(type: DownloadDependencyTask) {
-    repositoryId = "maven-central"
-    repositoryType = "default"
-    repositoryUrl = "http://repo1.maven.org/maven2/"
-    artifactCoords = "junit:junit-dep:4.10";
-    destinationFolder = "build/"
-
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Aether plugin',
+                'Implementation-Version': version,
+                'Built-By': System.getProperty('user.name'),
+                'Built-Date': new Date(),
+                'Built-JDK': System.getProperty('java.version'),
+                'Built-Gradle': gradle.gradleVersion
+    }
 }
 
+idea.project {
+    jdkName = '1.8'
+    languageLevel = sourceCompatibility
+
+    ipr.withXml { provider ->
+        def node = provider.asNode()
+
+        // Use GIT
+        def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
+        vcsConfig.mapping[0].'@vcs' = 'Git'
+
+        // Set Gradle home
+        def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
+        gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir])
+    }
+}
